@@ -502,7 +502,7 @@
 <body>
   <!-- 音频元素 -->
   <audio id="envelopeSound" preload="auto">
-    <source src="https://assets.mixkit.co/sfx/preview/mixkit-letter-envelope-opening-1911.mp3" type="audio/mpeg">
+    <source src="http://cdn5.lizhi.fm/audio/2018/02/17/2653540326044939270_hd.mp3">
   </audio>
 
   <!-- 信封和信纸结构 -->
@@ -533,6 +533,15 @@
     
     <!-- 卡片容器 -->
     <div id="card-container">
+    <!-- 新增卡片（原卡片1前） -->
+      <div class="card" data-index="0">
+        <h1 class="card-title">滑动切换卡片</h1>
+        <div class="card-content">
+          <p>嗨</p>
+          <p>你可以通过左右滑动屏幕，或者点击两侧的箭头按钮，查看更多内容哦～</p>
+          <p class="highlight">---</p>
+        </div>
+      </div>
       <!-- 卡片1 -->
       <div class="card" data-index="0">
         <h1 class="card-title">致最亲爱的WY：</h1>
@@ -897,7 +906,7 @@
 <script>
   // 页面加载完成后显示提示
   window.onload = function() {
-    alert('这是一封特别的信');
+    alert('这是一封特别的信，我思索好久终于下定决心');
   };
 </script>
 </body>
