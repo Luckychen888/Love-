@@ -1,1 +1,904 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
 
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>一封情书</title>
+  <style>
+    /* 引入手写字体 */
+    @font-face {
+      font-family: 'Handwritten Love';
+      src: url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');
+    }
+
+    @font-face {
+      font-family: 'Gentle Script';
+      src: url('https://fonts.googleapis.com/css2?family=Sacramento&display=swap');
+    }
+
+    /* 全局样式 */
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #f8f0e3, #f5e6e8);
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    /* 装饰元素 - 漂浮的花瓣 */
+    .petal {
+      position: absolute;
+      background-color: #f5d7d7;
+      opacity: 0.7;
+      border-radius: 150% 0 150% 0;
+      animation: falling linear forwards;
+      z-index: 1;
+    }
+
+    @keyframes falling {
+      0% {
+        transform: translateY(-10vh) rotate(0deg);
+        opacity: 0.7;
+      }
+      100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+      }
+    }
+
+    /* 信封样式 */
+    #envelope {
+      width: clamp(200px, 20vw, 350px);
+      height: clamp(150px, 15vw, 260px);
+      position: relative;
+      cursor: pointer;
+      animation: float 3s ease-in-out infinite;
+      transform-style: preserve-3d;
+      z-index: 2;
+    }
+
+    .envelope-body {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      border-radius: 4px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .envelope-flap {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: #f8c2d8;
+      border-radius: 4px;
+      z-index: 3;
+      transition: transform 0.5s ease;
+      transform-origin: top;
+      transform: rotateX(0deg);
+      clip-path: polygon(0 0, 100% 0, 100% 50%, 50% 100%, 0 50%);
+    }
+
+    .envelope-bottom {
+      position: absolute;
+      width: 100%;
+      height: 50%;
+      background: #d8eaf8;
+      border-radius: 0 0 4px 4px;
+      bottom: 0;
+      z-index: 2;
+    }
+
+    .envelope-left,
+    .envelope-right {
+      position: absolute;
+      width: 0;
+      height: 50%;
+      top: 0;
+      z-index: 2;
+    }
+
+    .envelope-left {
+      left: 0;
+      clip-path: polygon(0 0, 100% 0, 0 100%);
+      background: #f8ead8;
+    }
+
+    .envelope-right {
+      right: 0;
+      clip-path: polygon(100% 0, 100% 100%, 0 0);
+      background: #d8f8e0;
+    }
+
+    /* 信封扣样式 */
+    .envelope-clip {
+      position: absolute;
+      top: 45%;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 30px;
+      z-index: 5;
+      transition: all 0.3s ease;
+    }
+
+    .clip-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 15px;
+      background: #e98074;
+      border-radius: 5px 5px 0 0;
+    }
+
+    .clip-bottom {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 15px;
+      background: #e98074;
+      border-radius: 0 0 5px 5px;
+    }
+
+    .clip-loop {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 20px;
+      border: 2px solid #e98074;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.8);
+      z-index: 6;
+    }
+
+    #envelope:hover .envelope-clip {
+      transform: translateX(-50%) scale(1.05);
+    }
+
+    #envelope.opened .envelope-clip {
+      opacity: 0;
+      transform: translateX(-50%) translateY(-20px);
+    }
+
+    #envelope.opened .envelope-flap {
+      transform: rotateX(180deg);
+    }
+
+    /* 卡片容器样式 */
+    #letter-container {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.95);
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    #letter-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7 3.134-7 7-3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7 3.134-7 7-3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23f5d7d7' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+      opacity: 0.5;
+      pointer-events: none;
+    }
+
+    /* 卡片导航样式 */
+    .card-navigation {
+      position: absolute;
+      bottom: 20px;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 110;
+    }
+
+    .nav-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #e98074;
+      margin: 0 5px;
+      opacity: 0.5;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .nav-dot.active {
+      opacity: 1;
+      transform: scale(1.5);
+      box-shadow: 0 0 10px rgba(233, 128, 116, 0.7);
+    }
+
+    /* 卡片导航样式 */
+    .card-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 36px;
+      color: #e98074;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: all 0.3s;
+      z-index: 110;
+      background: rgba(255, 255, 255, 0.7);
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-arrow:hover {
+      opacity: 1;
+      transform: translateY(-50%) scale(1.1);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .card-arrow.prev {
+      left: 20px;
+    }
+
+    .card-arrow.next {
+      right: 20px;
+    }
+
+    /* 卡片样式 */
+    #card-container {
+      position: relative;
+      width: 90%;
+      max-width: 600px;
+      height: auto; /* 原80vh，改为自动高度适配内容 */
+      max-height: 90vh; /* 保留最大高度限制，避免过长 */
+      min-height: 70vh; /* 新增最小高度，确保小屏有基础显示空间 */
+    }
+
+    .card {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 15px 35px rgba(226, 195, 195, 0.3);
+      box-sizing: border-box;
+      opacity: 0;
+      transform: scale(0.9);
+      transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      overflow-y: auto;  /* 保留自动滚动 */
+      /* 移除原scrollbar-width: none; 让Firefox显示滚动条 */
+      z-index: 105;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* 自定义webkit滚动条样式 */
+    .card::-webkit-scrollbar {
+        width: 8px;  /* 滚动条宽度 */
+        display: block;  /* 显示滚动条 */
+    }
+
+    .card::-webkit-scrollbar-track {
+        background: #f5f5f5;  /* 滚动条轨道背景 */
+        border-radius: 4px;
+    }
+
+    .card::-webkit-scrollbar-thumb {
+        background: #e98074;  /* 滚动条滑块颜色（与主色一致） */
+        border-radius: 4px;
+    }
+
+    .card::-webkit-scrollbar-thumb:hover {
+        background: #e85a4f;  /* 悬停时加深颜色 */
+    }
+
+    .card.active {
+      opacity: 1;
+      transform: scale(1);
+      z-index: 106;
+    }
+
+    .card.prev {
+      opacity: 0;
+      transform: translateX(-100%) scale(0.8) rotate(-10deg);
+      z-index: 104;
+    }
+
+    .card.next {
+      opacity: 0;
+      transform: translateX(100%) scale(0.8) rotate(10deg);
+      z-index: 104;
+    }
+
+    .card-title {
+      font-family: 'Handwritten Love', cursive;
+      font-size: clamp(24px, 5vw, 36px);
+      color: #e98074;
+      text-align: center;
+      margin-bottom: 20px;
+      position: relative;
+      transform: translateY(20px);
+      opacity: 0;
+      transition: all 0.6s ease 0.2s;
+    }
+
+    .card.active .card-title {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .card-title::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 2px;
+      background: #e98074;
+    }
+
+    .card-content {
+      font-family: 'Gentle Script', cursive;
+      font-size: clamp(16px, 3vw, 20px);
+      color: #4a4a4a;
+      line-height: 1.8; /* 原1.6，增加行高提升手机阅读体验 */
+      padding: 20px; /* 原30px，减少内边距释放内容空间 */
+      transform: translateY(30px);
+      opacity: 0;
+      transition: all 0.6s ease 0.4s;
+    }
+
+    .card.active .card-content {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .highlight {
+      text-align: center;
+      color: #e85a4f;
+      font-family: 'Handwritten Love', cursive;
+      margin: 25px 0;
+      position: relative;
+      transform: translateY(40px);
+      opacity: 0;
+      transition: all 0.6s ease 0.6s;
+    }
+
+    .card.active .highlight {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    .highlight::before,
+    .highlight::after {
+      content: '❧';
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 24px;
+      color: #e98074;
+    }
+
+    .highlight::before {
+      left: 0;
+    }
+
+    .highlight::after {
+      right: 0;
+    }
+
+    .signature {
+      text-align: right;
+      font-size: clamp(18px, 3.5vw, 24px);
+      color: #5a5a5a;
+      margin-top: 30px;
+      transform: translateY(50px);
+      opacity: 0;
+      transition: all 0.6s ease 0.8s;
+    }
+
+    .card.active .signature {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-15px) rotate(-2deg); }
+      100% { transform: translateY(0) rotate(0deg); }
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 24px;
+      color: #aaa;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: all 0.3s;
+      z-index: 110;
+      background: rgba(255, 255, 255, 0.7);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .close-btn:hover {
+      opacity: 1;
+      transform: scale(1.1);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    /* 卡片背景样式 */
+    .card[data-index="0"] {
+      background: linear-gradient(135deg, #ffffff 0%, #f8f0e3 100%);
+    }
+    
+    .card[data-index="1"] {
+      background: linear-gradient(135deg, #ffffff 0%, #f8ead8 100%);
+    }
+    
+    .card[data-index="2"] {
+      background: linear-gradient(135deg, #ffffff 0%, #f8e0e0 100%);
+    }
+    
+    .card[data-index="3"] {
+      background: linear-gradient(135deg, #ffffff 0%, #f5d7d7 100%);
+    }
+    
+    .card[data-index="4"] {
+      background: linear-gradient(135deg, #ffffff 0%, #f5d7e3 100%);
+    }
+    
+    .card[data-index="5"] {
+      background: linear-gradient(135deg, #ffffff 0%, #e8d7f5 100%);
+    }
+    
+    .card[data-index="6"] {
+      background: linear-gradient(135deg, #ffffff 0%, #d7dcf5 100%);
+    }
+    
+    .card[data-index="7"] {
+      background: linear-gradient(135deg, #ffffff 0%, #d7eaf5 100%);
+    }
+    
+    .card[data-index="8"] {
+      background: linear-gradient(135deg, #ffffff 0%, #d7f5e0 100%);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 音频元素 -->
+  <audio id="envelopeSound" preload="auto">
+    <source src="https://assets.mixkit.co/sfx/preview/mixkit-letter-envelope-opening-1911.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- 信封和信纸结构 -->
+  <div id="envelope">
+    <div class="envelope-body"></div>
+    <div class="envelope-flap"></div>
+    <div class="envelope-bottom"></div>
+    <div class="envelope-left"></div>
+    <div class="envelope-right"></div>
+    
+    <!-- 信封扣 -->
+    <div class="envelope-clip">
+      <div class="clip-top"></div>
+      <div class="clip-bottom"></div>
+      <div class="clip-loop"></div>
+    </div>
+  </div>
+  
+  <!-- 卡片容器 -->
+  <div id="letter-container">
+    <div class="close-btn" onclick="closeLetter()">&times;</div>
+    
+    <!-- 卡片导航 -->
+    <div class="card-arrow prev" onclick="prevCard()"><i class="fa fa-angle-left"></i></div>
+    <div class="card-arrow next" onclick="nextCard()"><i class="fa fa-angle-right"></i></div>
+    
+    <div class="card-navigation" id="card-dots"></div>
+    
+    <!-- 卡片容器 -->
+    <div id="card-container">
+      <!-- 卡片1 -->
+      <div class="card" data-index="0">
+        <h1 class="card-title">致最亲爱的WY：</h1>
+        <div class="card-content">
+          <!-- 新增6个空段落 -->
+          <p></p>
+          <p></p>
+          <p>　　　</p>
+          <p>　　　</p>
+          <p>　　　</p>
+          <p>当指尖触碰到键盘，心中的千言万语化作屏幕上不断被删除的字符。</p>
+          <p>那些在心底反复排练的词句，此刻都变得笨拙而羞涩。</p>
+          <p>但有些情感，再怎么隐藏，也会从眼睛里跑出来。</p>
+          <p>最终还是决定把这些藏在心底的话郑重写下。</p>
+          <p>多害怕会唐突到你。</p>
+          <p>可若不说，这份汹涌的情感，或许会成为我无数个日夜的遗憾。</p>
+        </div>
+      </div>
+      
+      <!-- 卡片2 -->
+      <div class="card" data-index="1">
+        <div class="card-content">
+          <!-- 新增6个空段落 -->
+          <p>　　　</p>
+          <p>　　　</p>
+          <p> 　　　</p>
+          <p> 　　　</p>
+          <p> 　　　</p>
+          <p> 　　　</p>
+          <p> 　　　</p>
+          <p> 　　　</p>
+          <p> 　　　</p>        
+          <p>　　　</p>
+          <p>　　　</p>
+          <p>　　　</p>
+          <p>　　　</p>
+          <p>　　　</p>
+          <p>还记得初次见面时，你身上独特的气质便深深吸引了我。</p>
+          <p>你对边界的清晰把握，处理事情时的冷静与独立，以及那些毫无保留的真实情绪，都让我倍感熟悉与好奇。--仿佛在茫茫人海中，找到了另一个自己。</p>
+          <p>从那之后，我的目光总是不自觉地追随着你，在意你说的每一句话、每一个细微的表情。</p>
+          <p>和你相处的每一天，都像在翻阅一本精彩又神秘的书，越读越沉醉。</p>
+          <p class="highlight">真正的喜欢，不是打破原有的边界，而是学会在边界外，种满你喜欢的花。</p>
+          <p>原来细水长流的陪伴，真的能滋生出无尽的温柔。那些一起度过的时光，或平淡、或有趣，都成了我生命中最珍贵的记忆。</p>
+          <p>那些没能见面的日子，一句简单的“晚安”，便成了我寄托思念的仪式。</p>
+          <p>我多希望，这简单的二字，能穿过漫长黑夜，守护你甜美的梦境。</p>
+        </div>
+      </div>
+      
+      <!-- 卡片3 -->
+      <div class="card" data-index="2">
+        <div class="card-content">
+          <p>　　　 </p>
+          <p> 　　　</p>
+          <p>　　　 </p>
+          <p> 　　　</p>
+          <p> 　　　</p>
+          <p> 　　　</p>
+          <p> 　　　</p>
+          <p>　　　 </p>
+          <p>　　　 </p>        
+          <p>直到那天，你靠在我肩头休憩。</p>
+          <p>那一刻，我的心仿佛被什么东西狠狠撞了一下，剧烈的心跳声几乎要冲破胸膛。我才惊觉，原来心动是这般模样。</p>
+          <p>从那之后，我再也无法欺骗自己，我对你的在意，早已远远超出了普通朋友的界限。</p>
+          <p class="highlight">我听见自己心跳如鼓，却不敢转头观看——<br>也许是紧张，但又突然懂得：<br>有些心动需要静置，像窖藏的酒，像破土的芽，需要时光慢慢酿出答案。</p>
+          <p>从那天起， “朋友” 这个身份突然有了重量：我想靠近，却更怕惊动你守护的宁静；我想倾诉，却更愿用沉默陪你抵御风雨。</p>
+        </div>
+      </div>
+      
+      <!-- 卡片4 -->
+      <div class="card" data-index="3">
+        <div class="card-content">
+          <p class="highlight">按捺不住的悸动，<br>满心都是靠近你的念头，<br>手脚却总是比心慢半拍。</p>
+          <p>让你感到压力，真的很抱歉。</p>
+          <p>可喜欢你这件事，憋在心里怎么也藏不住，</p>
+          <p>哪怕笨拙，也想让你看见。</p>
+        </div>
+      </div>
+      
+      <!-- 卡片5 -->
+      <div class="card" data-index="4">
+        <div class="card-content">
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p> 　　　</p>
+          <p> 　　　</p>
+          <p> 　　　</p>
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p>　　　 </p>    
+          <p>我非常担心越界，因为你早就警示过。</p>
+          <p>于是，我只能在心里反复斟酌每一个举动、每一句话。</p>
+          <p>可这份心意啊，</p>
+          <p>像春天的草芽，</p>
+          <p>在心底疯长到快要撑破胸膛——</p>
+          <p class="highlight">真的喜欢你，<br>像心跳一样无法克制，<br>又像雪落在火上，<br>既想靠近，又怕融化彼此。</p>
+        </div>
+      </div>
+      
+      <!-- 卡片6 -->
+      <div class="card" data-index="5">
+        <div class="card-content">
+          <p>　　　 </p>
+          <p> 　　　</p>
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p>　　　 </p>    
+          <p>我明白，你偶尔的回避，是出于对自己的保护；你对独立空间的需求，是刻在骨子里的坚持。</p>
+          <p>我尊重你的每一个选择，也愿意等待，等你放下防备，等你愿意向我敞开更多的心扉。</p>
+          <p>你说过，爱一个人，不是急切地说“我爱你”，而是真正地看见、理解、接纳你所有的样子。</p>
+          <p class="highlight">我看见你的孤独，如同看见自己的影子<br>我懂得你的沉默，如同懂得星辰不必追赶太阳<br>我欣赏你的锋利，如同欣赏玫瑰带刺的绽放。</p>
+          <p>王英，我看见了真实的你，也正是这样的你，让我越来越喜欢，越来越坚定。</p>
+        </div>
+      </div>
+      
+      <!-- 卡片7 -->
+      <div class="card" data-index="6">
+        <div class="card-content">
+          <p>我真的真的很想和你在一起，想和你分享生活中的点点滴滴，想在你开心时陪你大笑，在你难过时给你依靠，想和你一起走过无数个春夏秋冬。</p>
+        </div>
+      </div>
+      
+      <!-- 卡片8 -->
+      <div class="card" data-index="7">
+        <div class="card-content">
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p> 　　　</p>
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p>　　　 </p>    
+          <p>写下这些，不是想要逼你立刻做出回应，</p>
+          <p>只是不想让这份炽热的心意，永远被深埋在心底。</p>
+          <p>你的任何决定，我都全盘接受。</p>
+          <p>如果做朋友能让你感到自在、安心，那我就继续以朋友的身份，默默站在你身后，在你需要的时候，第一时间出现。</p>
+        </div>
+      </div>
+      
+      <!-- 卡片9 -->
+      <div class="card" data-index="8">
+        <div class="card-content">
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p>　　　 </p>
+          <p>　　　 </p>    
+          <p>请原谅我的冒昧，将这些未曾说出口的话写在这里。</p>
+          <p>你可以把它存入云端，放进岁月的天空，</p>
+          <p>也可以当作一片路过的云，不必记在心上。</p>
+          <p>但如果你偶尔抬头，看见一颗星在固执地闪烁——</p>
+          <p>那是我在说：</p>
+          <p class="highlight">「你不必急着转身，我会一直在这里，<br>用你喜欢的速度，靠近你的光。」</p>
+          <p class="signature">——永远守望的人</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 页面元素
+    const envelope = document.getElementById('envelope');
+    const letterContainer = document.getElementById('letter-container');
+    const cardContainer = document.getElementById('card-container');
+    const cards = document.querySelectorAll('.card');
+    const cardDots = document.getElementById('card-dots');
+    const envelopeSound = document.getElementById('envelopeSound');
+    
+    let currentCardIndex = 0;
+    const totalCards = cards.length;
+    
+    // 创建卡片导航点
+    function createCardDots() {
+      cardDots.innerHTML = '';
+      for (let i = 0; i < totalCards; i++) {
+        const dot = document.createElement('div');
+        dot.classList.add('nav-dot');
+        if (i === currentCardIndex) {
+          dot.classList.add('active');
+        }
+        dot.addEventListener('click', () => {
+          showCard(i);
+        });
+        cardDots.appendChild(dot);
+      }
+    }
+    
+    // 显示指定卡片
+    function showCard(index) {
+      // 重置所有卡片动画
+      cards.forEach(card => {
+        card.classList.remove('active', 'prev', 'next');
+      });
+      
+      // 更新当前卡片索引
+      currentCardIndex = index;
+      
+      // 设置卡片状态
+      cards.forEach((card, i) => {
+        if (i === currentCardIndex) {
+          card.classList.add('active');
+        } else if (i < currentCardIndex) {
+          card.classList.add('prev');
+        } else {
+          card.classList.add('next');
+        }
+      });
+      
+      // 更新导航点
+      updateCardDots();
+    }
+    
+    // 更新导航点状态
+    function updateCardDots() {
+      const dots = document.querySelectorAll('.nav-dot');
+      dots.forEach((dot, i) => {
+        if (i === currentCardIndex) {
+          dot.classList.add('active');
+        } else {
+          dot.classList.remove('active');
+        }
+      });
+    }
+    
+    // 下一张卡片
+    function nextCard() {
+      if (currentCardIndex < totalCards - 1) {
+        showCard(currentCardIndex + 1);
+      } else {
+        // 循环到第一张
+        showCard(0);
+      }
+    }
+    
+    // 上一张卡片
+    function prevCard() {
+      if (currentCardIndex > 0) {
+        showCard(currentCardIndex - 1);
+      } else {
+        // 循环到最后一张
+        showCard(totalCards - 1);
+      }
+    }
+    
+    // 创建花瓣装饰
+    function createPetals() {
+      const petals = document.querySelectorAll('.petal');
+      petals.forEach(petal => petal.remove());
+      
+      const petalCount = 20;
+      for (let i = 0; i < petalCount; i++) {
+        const petal = document.createElement('div');
+        petal.classList.add('petal');
+        
+        const size = Math.random() * 15 + 5;
+        petal.style.width = `${size}px`;
+        petal.style.height = `${size * 1.5}px`;
+        petal.style.left = `${Math.random() * 100}vw`;
+        
+        const delay = Math.random() * 10;
+        const duration = Math.random() * 10 + 10;
+        petal.style.animationDelay = `${delay}s`;
+        petal.style.animationDuration = `${duration}s`;
+        petal.style.transform = `rotate(${Math.random() * 360}deg)`;
+        
+        document.body.appendChild(petal);
+      }
+    }
+    
+    // 播放信封打开音效
+    function playEnvelopeSound() {
+      envelopeSound.currentTime = 0;
+      envelopeSound.play().catch(error => {
+        console.log('无法自动播放音效:', error);
+      });
+    }
+    
+    // 显示信件
+    envelope.addEventListener('click', () => {
+      playEnvelopeSound();
+      envelope.classList.add('opened');
+      createPetals();
+      
+      setTimeout(() => {
+        letterContainer.style.display = 'flex';
+        // 初始化卡片
+        createCardDots();
+        showCard(0);
+        
+        // 添加键盘导航
+        document.addEventListener('keydown', handleKeyPress);
+        
+        // 添加滑动手势
+        initSwipeEvents();
+      }, 300);
+    });
+
+    // 关闭信件
+    function closeLetter() {
+      // 移除键盘导航
+      document.removeEventListener('keydown', handleKeyPress);
+      
+      letterContainer.style.display = 'none';
+      envelope.classList.remove('opened');
+    }
+    
+    // 键盘导航
+    function handleKeyPress(e) {
+      if (e.key === 'ArrowRight') {
+        nextCard();
+      } else if (e.key === 'ArrowLeft') {
+        prevCard();
+      } else if (e.key === 'Escape') {
+        closeLetter();
+      }
+    }
+    
+    // 滑动手势支持
+    function initSwipeEvents() {
+      let touchStartX = 0;
+      let touchEndX = 0;
+      
+      letterContainer.addEventListener('touchstart', e => {
+        touchStartX = e.changedTouches[0].screenX;
+      }, false);
+      
+      letterContainer.addEventListener('touchend', e => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+      }, false);
+      
+      function handleSwipe() {
+        const swipeThreshold = 50;
+        if (touchEndX - touchStartX > swipeThreshold) {
+          prevCard();
+        } else if (touchEndX - touchStartX < -swipeThreshold) {
+          nextCard();
+        }
+      }
+    }
+
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('DOM加载完成');
+    });
+  </script>
+</body>
+
+</html>
+
+<!-- 新增：页面加载提示脚本 -->
+<script>
+  // 页面加载完成后显示提示
+  window.onload = function() {
+    alert('这是一封特别的信');
+  };
+</script>
+</body>
+</html>
