@@ -5,6 +5,100 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>一封特别的信-致王英</title>
+  <!-- 音乐播放组件 - 可插入到任意位置 -->
+<div id="musicPlayer" class="fixed bottom-6 right-6 z-50 bg-white rounded-full shadow-lg p-3 flex items-center gap-3 transform transition-all duration-300 hover:shadow-xl">
+    <div id="playPauseBtn" class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white cursor-pointer hover:bg-primary/90 transition-colors">
+        <i class="fa fa-play text-lg"></i>
+    </div>
+    <div class="music-info hidden md:flex flex-col">
+        <div class="font-medium text-dark">正在播放</div>
+        <div class="text-sm text-gray-500">太聪明 - 陈绮贞</div>
+    </div>
+    <div class="music-wave hidden md:flex">
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+    </div>
+    <div id="volumeControl" class="hidden md:flex items-center ml-2">
+        <i class="fa fa-volume-up text-gray-500 mr-1"></i>
+        <input type="range" min="0" max="1" step="0.05" value="0.7" class="w-20 accent-primary">
+    </div>
+    <audio id="bgMusic" loop>
+        <source src="https://3wt.music.zhangtiandi.cn/2025/05-19/18bc9d587d7f4397b460444c9565b68e3wcn616282.mp3" type="audio/mpeg">
+        您的浏览器不支持音频播放。
+    </audio>
+</div>
+
+<script>
+    // 音乐播放控制逻辑
+    document.addEventListener('DOMContentLoaded', function() {
+        const audio = document.getElementById('bgMusic');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const volumeControl = document.querySelector('#volumeControl input');
+        const musicWave = document.querySelector('.music-wave');
+        
+        // 自动播放处理
+        function initAudio() {
+            // 尝试自动播放
+            audio.play().catch(e => {
+                console.log('自动播放失败:', e);
+                // 显示播放按钮提示用户点击
+                playPauseBtn.innerHTML = '<i class="fa fa-play text-lg"></i>';
+                playPauseBtn.classList.remove('bg-green-500');
+                playPauseBtn.classList.add('bg-primary');
+            }).then(() => {
+                // 自动播放成功
+                updatePlayState(true);
+            });
+        }
+        
+        // 初始化音频
+        initAudio();
+        
+        // 播放/暂停控制
+        playPauseBtn.addEventListener('click', function() {
+            if (audio.paused) {
+                audio.play().then(() => {
+                    updatePlayState(true);
+                });
+            } else {
+                audio.pause();
+                updatePlayState(false);
+            }
+        });
+        
+        // 音量控制
+        volumeControl.addEventListener('input', function() {
+            audio.volume = this.value;
+        });
+        
+        // 更新播放状态UI
+        function updatePlayState(isPlaying) {
+            if (isPlaying) {
+                playPauseBtn.innerHTML = '<i class="fa fa-pause text-lg"></i>';
+                playPauseBtn.classList.remove('bg-primary');
+                playPauseBtn.classList.add('bg-green-500');
+                musicWave.style.display = 'flex';
+            } else {
+                playPauseBtn.innerHTML = '<i class="fa fa-play text-lg"></i>';
+                playPauseBtn.classList.remove('bg-green-500');
+                playPauseBtn.classList.add('bg-primary');
+                musicWave.style.display = 'none';
+            }
+        }
+        
+        // 处理用户交互以解锁音频
+        document.addEventListener('click', function unlockAudio() {
+            audio.play().then(() => {
+                document.removeEventListener('click', unlockAudio);
+            }).catch(e => {
+                console.log('解锁播放失败:', e);
+            });
+        }, { once: true });
+    });
+</script>
   <style>
     /* 样式部分保持不变 */
     @font-face {
@@ -480,12 +574,12 @@
   <!-- 确认弹窗 -->
   <div class="modal-overlay" id="confirmationModal">
     <div class="confirmation-modal">
-      <h2 class="modal-question" id="currentQuestion">1真的想好了吗？</h2>
+      <h2 class="modal-question" id="currentQuestion">真的想好了吗？</h2>
       <div class="modal-description" id="questionDesc">
         有些决定像拆礼物<br>
         拆开前的期待和拆开后的心情<br>
-        可能完全不一样哦~<br>
-        现在要打开这封特别的信吗？
+        可能完全不一样<br>
+        仔细考虑一下吧
       </div>
       <div class="countdown-wrap" id="countdownWrap">
         <div class="countdown-bar" id="countdownBar"></div>
@@ -500,7 +594,7 @@
 
   <!-- 音频元素 -->
   <audio id="envelopeSound" preload="auto">
-    <source src="https://3wt.music.zhangtiandi.cn/2025/05-19/18bc9d587d7f4397b460444c9565b68e3wcn616282.mp3">
+    <source src="无">
   </audio>
 
   <!-- 信封和信纸结构 -->
@@ -723,12 +817,12 @@
     const questions = [
       { 
         text: "真的想好了吗？", 
-        desc: "有些决定像拆礼物<br>拆开前的期待和拆开后的心情<br>可能完全不一样哦~<br>现在要打开这封特别的信吗？",
+        desc: "有些决定像拆礼物<br>拆开前的期待和拆开后的心情<br>可能完全不一样<br>现在要打开这封特别的信吗？",
         yes: "有时候，勇气是打开心扉的钥匙。",
         no: "没关系，或许再等等，时机就会成熟。"
       },
       { 
-        text: "准备好了吗？", 
+        text: "真的准备好了吗？", 
         desc: "信里的文字像春天的种子<br>带着期待和忐忑<br>等待着被阅读的那一刻<br>真的要继续吗？",
         yes: "有时候，最珍贵的礼物是真诚的心意。",
         no: "嗯，再给自己一点时间也不错。"
