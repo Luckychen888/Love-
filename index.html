@@ -5,47 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>难忘</title>
-  <!-- 访问计数器 -->
-<div class="fixed top-4 left-4 bg-white/90 backdrop-blur-sm shadow-lg rounded-lg p-3 z-50 border border-gray-200 transition-all duration-300 hover:shadow-xl">
-    <p class="font-semibold text-gray-800 flex items-center gap-2">
-        <i class="fa fa-eye text-blue-500"></i>
-        <span>访问次数: <span id="visitCount" class="text-blue-500 font-bold">0</span></span>
-    </p>
-</div>
-
-<script>
-    // 页面加载完成后执行
-    document.addEventListener('DOMContentLoaded', function() {
-        // 获取访问计数元素
-        const visitCountElement = document.getElementById('visitCount');
-        
-        // 从localStorage获取访问次数
-        let visitCount = localStorage.getItem('visitCount');
-        
-        // 如果是首次访问，初始化计数
-        if (visitCount === null) {
-            visitCount = 1;
-            localStorage.setItem('visitCount', visitCount);
-        } else {
-            // 否则增加计数
-            visitCount = parseInt(visitCount) + 1;
-            localStorage.setItem('visitCount', visitCount);
-        }
-        
-        // 显示当前访问次数
-        visitCountElement.textContent = visitCount;
-        
-        // 添加计数变化动画
-        visitCountElement.animate([
-            { transform: 'scale(1)' },
-            { transform: 'scale(1.3)' },
-            { transform: 'scale(1)' }
-        ], {
-            duration: 500,
-            easing: 'ease-out'
-        });
-    });
-</script>
+  
   <!-- 音乐播放组件 - 可插入到任意位置 -->
 <div id="musicPlayer" class="fixed bottom-6 right-6 z-50 bg-white rounded-full shadow-lg p-3 flex items-center gap-3 transform transition-all duration-300 hover:shadow-xl">
     <div id="playPauseBtn" class="w-12 h-12 rounded-full bg-primary flex items-center justify-center text-white cursor-pointer hover:bg-primary/90 transition-colors">
